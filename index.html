@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Voice Recognition & Response</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f1f8e9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      color: #388e3c;
+    }
+
+    select, button {
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
+    }
+
+    .output {
+      background: #fff;
+      padding: 20px;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-top: 20px;
+      font-size: 18px;
+      color: #2e7d32;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Voice Recognition & Playback</h1>
+  <label for="language">Choose a language:</label>
+  <select id="language">
+    <option value="en-US">English (US)</option>
+    <option value="en-GB">English (UK)</option>
+    <option value="hi-IN">Hindi</option>
+    <option value="ta-IN">Tamil</option>
+    <option value="te-IN">Telugu</option>
+    <option value="fr-FR">French</option>
+    <option value="es-ES">Spanish</option>
+    <option value="de-DE">German</option>
+    <option value="zh-CN">Chinese (Mandarin)</option>
+    <option value="ja-JP">Japanese</option>
+    <!-- Add more as needed -->
+  </select>
+  <button onclick="startRecognition()">Start Listening</button>
+
+  <div class="output" id="output">Waiting for speech...</div>
+
+  <script>
+    const output = document.getElementById("output");
+    const langSelect = document.getElementById("language");
+
+    let recognition;
+
+    function speakText(text, lang) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      speechSynthesis.speak(utterance);
+    }
+
+    function startRecognition() {
+      if (!('webkitSpeechRecognition' in window)) {
+        alert("Your browser doesn't support Speech Recognition");
+        return;
+      }
+
+      if (recognition) {
+        recognition.stop();
+      }
+
+      recognition = new webkitSpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = false; // We'll only speak finalized results
+      recognition.lang = langSelect.value;
+
+      output.innerText = `Listening in ${langSelect.options[langSelect.selectedIndex].text}...\n`;
+
+      recognition.onresult = function(event) {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            const transcript = event.results[i][0].transcript.trim();
+            output.innerText += `\nYou said: "${transcript}"`;
+            speakText(transcript, recognition.lang);
+          }
+        }
+      };
+
+      recognition.onerror = function(event) {
+        output.innerText += "\nError: " + event.error;
+      };
+
+      recognition.onend = function() {
+        output.innerText += "\nRecognition ended.";
+      };
+
+      recognition.start();
+    }
+  </script>
+
+</body>
+</html>
